@@ -15,22 +15,28 @@ home.addEventListener("click", () => {
 let form = document.querySelector("#controls");
 let container = document.querySelector(".form-container");
 form.addEventListener("submit", generateMaze);
+
 function generateMaze(event) {
     event.preventDefault();
     dropdown = document.getElementById("dropdown");
     selectedValue = dropdown.value;
 
-    if (selectedValue == 1) {
+    if (selectedValue == 0) {
         rows = columns = 10;
         delay = 50;
     }
-    else if (selectedValue == 2) {
+    else if (selectedValue == 1) {
         rows = columns = 20;
-        delay = 30;
+        delay = 10;
     }
-    else if (selectedValue == 3) {
+    else if (selectedValue == 2) {
         rows = columns = 30;
-        delay = 1;
+        delay = 0;
+    }
+    else if(selectedValue==3)
+    {
+        rows=columns=40;
+        delay = 0;
     }
     else
     {
@@ -44,11 +50,6 @@ function generateMaze(event) {
     newMaze.setup();
     newMaze.drawMaze();
 }
-
-// let newNaze;
-// let newMaze = new Maze(600, 30, 30, 1);
-// newMaze.setup();
-// newMaze.drawMaze();
 
 document.addEventListener("keydown", move);
 
@@ -109,7 +110,6 @@ function move(event) {
                 currentCell = next;
                 newMaze.drawMaze();
                 currentCell.highlightCurrentCell(newMaze.noOfColumns);
-                // not required if goal is in bottom right
                 if (currentCell.goal) {
                     reachedHome = true;
                     complete.style.display = "block";
