@@ -2,6 +2,9 @@
 let maze = document.querySelector(".maze");
 let context = maze.getContext("2d");
 let currentCell; //the current selected cell
+let goalCell;
+let startCell;
+let generationComplete = false;
 
 class Maze{
     constructor(sizeOfMaze, noOfRows, noOfColumns)
@@ -26,16 +29,22 @@ class Maze{
             }
             this.grid.push(rowArray);//push each row to the 2d grid
         }
+        this.grid[this.noOfRows-1][this.noOfColumns-1].goal = true;
         currentCell = this.grid[0][0]; 
+        goalCell = this.grid[this.noOfRows-1][this.noOfColumns-1];
+        startCell = this.grid[0][0];
     }
 
     async drawMaze()
     {
         maze.width = this.sizeOfMaze;
         maze.height = this.sizeOfMaze;//square maze
-        maze.style.background = "lightpink";
+        maze.style.background = "#282434";
 
         currentCell.visited = true;//visit the first cell
+        
+        goalCell.highlightGoalCell(this.noOfColumns);
+        startCell.highlightStartCell(this.noOfColumns)
 
         //nested for loop to run showCell for each cell
         for(let row= 0; row<this.noOfRows ; row++)
@@ -55,17 +64,24 @@ class Maze{
             currentCell.highlightCurrentCell(this.noOfColumns);
             currentCell.removeWalls(currentCell, nextNeighbour);
             currentCell = nextNeighbour;
+            goalCell.highlightGoalCell(this.noOfColumns);
+            startCell.highlightStartCell(this.noOfColumns);
         }
         else if(this.stack.length>0)//backtracker when no more available neighbours
         {
             let cell = this.stack.pop();
             currentCell = cell; //new cell popped becomes the current cell
             currentCell.highlightCurrentCell(this.noOfColumns);
+            goalCell.highlightGoalCell(this.noOfColumns);
+            startCell.highlightStartCell(this.noOfColumns);
         }
 
         //all cells visited
         if(this.stack.length===0)
         {
+            goalCell.highlightGoalCell(this.noOfColumns);
+            startCell.highlightStartCell(this.noOfColumns);
+            generationComplete = true;
             return;
         }
 
@@ -87,6 +103,7 @@ class Cell{
         this.columnNumber = columnNumber;
         this.parentGrid = parentGrid;
         this.parentSize = parentSize;
+        this.goal = false;
         //each cell can be marked if it is visited
         this.visited = false; //false by default
         //all cells have four walls
@@ -169,11 +186,26 @@ class Cell{
 
     highlightCurrentCell(noOfColumns)
     {
-        let x = (this.columnNumber * this.parentSize )/noOfColumns+1;
-        let y = (this.rowNumber * this.parentSize )/noOfColumns+1; //noOfRows = noOfColumns
+        let x = (this.columnNumber * this.parentSize )/noOfColumns;
+        let y = (this.rowNumber * this.parentSize )/noOfColumns; //noOfRows = noOfColumns
     
         context.fillStyle = "#6b5b95";
-        context.fillRect(x, y, this.parentSize/noOfColumns-1, this.parentSize/noOfColumns-1);
+        context.fillRect(x+1, y+1, this.parentSize/noOfColumns-3, this.parentSize/noOfColumns-3);
+    }
+
+    highlightGoalCell(noOfColumns)
+    {
+        let x = ((noOfColumns-1) * this.parentSize )/noOfColumns;
+        let y = ((noOfColumns-1) * this.parentSize )/noOfColumns; //noOfRows = noOfColumns
+    
+        context.fillStyle = "#50C878";
+        context.fillRect(x, y, this.parentSize/noOfColumns-2, this.parentSize/noOfColumns-2);
+    }
+
+    highlightStartCell(noOfColumns)
+    {
+        context.fillStyle = "#D22B2B";
+        context.fillRect(0, 0, this.parentSize/noOfColumns-2, this.parentSize/noOfColumns-2);
     }
 
     removeWalls(cell1, cell2)
@@ -211,9 +243,9 @@ class Cell{
         let x = this.columnNumber * sizeOfMaze / noOfColumns;
         let y = this.rowNumber * sizeOfMaze / noOfRows;
 
-        context.strokeStyle = "black"; //to draw the walls
+        context.strokeStyle = "#282434"; //to draw the walls
         context.fillStyle = "lightpink"; //each cell filled black
-        context.lineWidth = 3;//each grid line 2pixel
+        context.lineWidth = 4;//each grid line 2pixel
 
         //draw the walls
         if(this.walls.topWall)
@@ -228,7 +260,7 @@ class Cell{
         if(this.visited)
         {
             //fill color for visited cells
-            context.fillRect(x+1, y+1, sizeOfMaze/noOfColumns-1, sizeOfMaze/noOfRows-1)
+            context.fillRect(x, y, sizeOfMaze/noOfColumns, sizeOfMaze/noOfRows)
         }
     }
 }
@@ -238,7 +270,3 @@ function delayRoutine(millisecs) {
         setTimeout(() => { resolve('') }, millisecs); 
     }) 
 }
-
-let newMaze = new Maze(600, 10, 10);
-newMaze.setup();
-newMaze.drawMaze();
